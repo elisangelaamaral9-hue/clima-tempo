@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="description" content="Clima‑Tempo — previsões rápidas para sua cidade usando Open‑Meteo." />
+    <title>Clima‑Tempo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="web/css/style.css" />
+  </head>
+  <body>
+    <div class="app-container" role="application" aria-labelledby="app-title">
+      <header>
+        <h1 id="app-title">Clima‑Tempo</h1>
+        <p class="lead">Busque por uma cidade e veja a condição atual e as próximas horas — simples, rápido e bonito.</p>
+      </header>
+
+      <main>
+        <form id="searchForm" class="search-box" aria-label="Formulário de busca de cidade">
+          <input id="cityInput" name="city" type="search" placeholder="Ex.: São Paulo, Rio de Janeiro" aria-label="Cidade" required autocomplete="on" />
+          <button id="searchBtn" type="submit">Ver previsão</button>
+        </form>
+
+        <div id="error" class="message-box hidden" role="status" aria-live="polite"></div>
+
+        <section id="result" class="result-box hidden" aria-live="polite">
+          <h2 id="location" class="location-heading"></h2>
+          <div class="weather-wrap">
+            <div id="current" class="weather-details" aria-label="Condição atual"></div>
+            <div id="forecast" class="weather-details" aria-label="Previsão horária"></div>
+          </div>
+          <div class="forecast-note">Dados fornecidos pela Open‑Meteo • Sem necessidade de chave</div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        Dados: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open‑Meteo</a>
+        <span aria-hidden="true"> ☀️ </span>
+        Imagens: <a href="https://unsplash.com/" target="_blank" rel="noopener">Unsplash</a>
+        <span aria-hidden="true">•</span>
+        Demo educacional — sem garantia de precisão
+      </footer>
+    </div>
+
+    <script src="web/js/app.js" type="module" defer></script>
+  </body>
+</html>

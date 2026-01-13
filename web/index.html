@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clima Tempo</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <div class="app-container">
+    <header>
+      <h1>☁️ Clima Tempo</h1>
+      <p>Verifique a previsão em qualquer lugar</p>
+    </header>
+
+    <form id="searchForm" class="search-box">
+      <input type="text" id="cityInput" placeholder="Digite o nome da cidade..." autocomplete="off">
+      <button type="submit">Buscar</button>
+    </form>
+
+    <div id="error" class="message-box hidden"></div>
+
+    <section id="result" class="result-box hidden">
+      <h2 id="location"></h2>
+      <div id="current" class="weather-details"></div>
+      <div id="forecast" class="forecast-note"></div>
+    </section>
+
+    <footer class="app-footer">
+      <div class="social-links">
+        <a href="https://www.linkedin.com/in/elisangela-amaral/" target="_blank" rel="noopener noreferrer" title="LinkedIn">
+          <i class="fab fa-linkedin"></i>
+        </a>
+        <a href="https://github.com/elisangelaamaral9-hue" target="_blank" rel="noopener noreferrer" title="GitHub">
+          <i class="fab fa-github"></i>
+        </a>
+        <a href="https://www.instagram.com/elisangela.amaral24" target="_blank" rel="noopener noreferrer" title="Instagram">
+          <i class="fab fa-instagram"></i>
+        </a>
+      </div>
+      <p>Feito por Elisângela Amaral - 2025</p>
+    </footer>
+  </div>
+
+  <script src="js/app.js" defer></script>
+</body>
+</html>
