@@ -2,16 +2,21 @@ const form = document.getElementById('searchForm');
 const cityInput = document.getElementById('cityInput');
 const resultSection = document.getElementById('result');
 const locationEl = document.getElementById('location');
+const btnLoc = document.getElementById('btnLoc');
 const currentEl = document.getElementById('current');
 const forecastEl = document.getElementById('forecast');
 const errorEl = document.getElementById('error');
+
+const submitButton = form ? form.querySelector('button[type="submit"]') : null;
 
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
   const city = cityInput.value.trim();
   if (!city) return;
   clearUI();
+
   try {
+    if (submitButton) submitButton.disabled = true;
     showMessage('Buscando localização...');
     const place = await lookupCity(city);
     if (!place) throw new Error('Cidade não encontrada');
@@ -20,13 +25,42 @@ form.addEventListener('submit', async (e) => {
     const forecast = await getForecast(place.latitude, place.longitude);
     renderResult(place, forecast);
   } catch (err) {
+    console.error('Erro no fluxo principal:', err);
     showError(err.message || 'Erro inesperado');
+  } finally {
+    if (submitButton) submitButton.disabled = false;
   }
 });
 
+if (btnLoc) {
+  btnLoc.addEventListener('click', () => {
+    if (!navigator.geolocation) {
+      showError('Geolocalização não é suportada pelo seu navegador.');
+      return;
+    }
+    clearUI();
+    showMessage('Detectando sua localização...');
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      try {
+        const { latitude, longitude } = pos.coords;
+        const forecast = await getForecast(latitude, longitude);
+        renderResult({ name: 'Sua Localização', country: '', admin1: '' }, forecast);
+      } catch (err) {
+        console.error('Erro ao obter previsao por geolocalizacao:', err);
+        showError('Erro ao obter dados da localização.');
+      }
+    }, (err) => {
+      console.warn('Geolocation permission denied or error:', err);
+      showError('Permissão de localização negada.');
+    });
+  });
+}
+
 function clearUI(){
   resultSection.classList.add('hidden');
+  resultSection.setAttribute('aria-hidden', 'true');
   errorEl.classList.add('hidden');
+  errorEl.setAttribute('aria-hidden', 'true');
   currentEl.innerHTML = '';
   forecastEl.innerHTML = '';
 }
@@ -35,6 +69,7 @@ function showMessage(msg){
   errorEl.classList.remove('hidden');
   errorEl.classList.remove('msg-error');
   errorEl.classList.add('msg-info');
+  errorEl.setAttribute('aria-hidden', 'false');
   errorEl.textContent = msg;
 }
 
@@ -42,27 +77,34 @@ function showError(msg){
   errorEl.classList.remove('hidden');
   errorEl.classList.remove('msg-info');
   errorEl.classList.add('msg-error');
+  errorEl.setAttribute('aria-hidden', 'false');
   errorEl.textContent = msg;
 }
 
 async function lookupCity(name){
-  // Prefer Brasil (country=BR). If nothing found, try a global search.
   const brUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=1&language=pt&country=BR`;
-  let res = await fetch(brUrl, {cache: 'no-store'});
-  if (!res.ok) throw new Error('Falha ao consultar geocoding (BR)');
-  let data = await res.json();
-  if (data && data.results && data.results[0]) return data.results[0];
+  try {
+    const res = await fetch(brUrl, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`Falha ao consultar geocoding (BR): ${res.status}`);
+    const data = await res.json();
+    if (data && data.results && data.results[0]) return data.results[0];
+  } catch (err) {
+    console.warn('Geocoding BR falhou:', err);
+  }
 
-  // Fallback: global search
   const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=1&language=pt`;
-  res = await fetch(url, {cache: 'no-store'});
-  if (!res.ok) throw new Error('Falha ao consultar geocoding');
-  data = await res.json();
-  return data && data.results && data.results[0] ? data.results[0] : null;
+  try {
+    const res2 = await fetch(url, { cache: 'no-store' });
+    if (!res2.ok) throw new Error(`Falha ao consultar geocoding: ${res2.status}`);
+    const data2 = await res2.json();
+    return data2 && data2.results && data2.results[0] ? data2.results[0] : null;
+  } catch (err) {
+    console.error('Geocoding (global) falhou:', err);
+    throw new Error('Não foi possível buscar a localização. Verifique a conexão.');
+  }
 }
 
 async function getForecast(lat, lon){
-  // Request current, hourly (for continuity) and daily (7 days)
   const params = new URLSearchParams({
     latitude: lat,
     longitude: lon,
@@ -73,23 +115,30 @@ async function getForecast(lat, lon){
     forecast_days: 7
   });
   const url = `https://api.open-meteo.com/v1/forecast?${params.toString()}`;
-  const res = await fetch(url, {cache: 'no-store'});
-  if (!res.ok) throw new Error('Falha ao consultar previsão');
-  return res.json();
+  try {
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`Falha ao consultar previsão: ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    console.error('Forecast fetch failed:', err);
+    throw new Error('Erro ao obter previsão. Tente novamente mais tarde.');
+  }
 }
 
 function renderResult(place, data){
   errorEl.classList.add('hidden');
+  errorEl.setAttribute('aria-hidden', 'true');
   resultSection.classList.remove('hidden');
+  resultSection.setAttribute('aria-hidden', 'false');
   locationEl.textContent = `${place.name}${place.admin1 ? ', ' + place.admin1 : ''} — ${place.country}`;
 
   const cw = data.current_weather || {};
   const code = cw.weathercode != null ? cw.weathercode : '';
-  // current weather with icon
   const iconUri = getWeatherSVG(code);
+
   currentEl.innerHTML = `
     <div class="weather-icon-wrap">
-      <img class="weather-icon" alt="ícone do tempo" src="${iconUri}" />
+      <img class="weather-icon" alt="${mapWeatherCode(code)}" src="${iconUri}" />
     </div>
     <strong>Agora</strong>
     <div>Temperatura: <strong>${cw.temperature ?? '—'}°C</strong></div>
@@ -98,10 +147,9 @@ function renderResult(place, data){
     <div>Horário: <small>${cw.time ?? ''}</small></div>
   `;
 
-  // build hourly list (next 12 hours) if available
+  // hourly
   const hourly = data.hourly || {};
   if (hourly.time && hourly.temperature_2m) {
-    // find current index
     const times = hourly.time;
     const temps = hourly.temperature_2m;
     const codes = hourly.weathercode || [];
@@ -111,10 +159,10 @@ function renderResult(place, data){
     const items = slice.map((t, i) => {
       const temp = temps[start + i];
       const wcode = codes[start + i] != null ? codes[start + i] : '';
-      const timeLabel = new Date(t).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+      const timeLabel = new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const uri = getWeatherSVG(wcode);
       return `<div class="hourly-item">
-                <img class="hourly-icon" src="${uri}" alt="" />
+                <img class="hourly-icon" src="${uri}" alt="${mapWeatherCode(wcode)}" />
                 <div class="hourly-time">${timeLabel}</div>
                 <div class="hourly-temp">${temp}°C</div>
               </div>`;
@@ -125,24 +173,23 @@ function renderResult(place, data){
     forecastEl.innerHTML = `<strong>Observação</strong><div>Dados fornecidos pela Open-Meteo. Atualize a página para nova busca.</div>`;
   }
 
-  // weekly/daily forecast (7 days)
+  // daily
   const daily = data.daily || {};
   if (daily.time && daily.time.length) {
     const days = daily.time.map((d, i) => {
-      const dateLabel = new Date(d).toLocaleDateString('pt-BR', {weekday: 'short', day: '2-digit', month: 'short'});
+      const dateLabel = new Date(d).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' });
       const tMax = daily.temperature_2m_max ? daily.temperature_2m_max[i] : '—';
       const tMin = daily.temperature_2m_min ? daily.temperature_2m_min[i] : '—';
       const wcode = daily.weathercode && daily.weathercode[i] != null ? daily.weathercode[i] : '';
       const uri = getWeatherSVG(wcode);
       return `<div class="weekly-item">
-                <img class="weekly-icon" src="${uri}" alt="" />
+                <img class="weekly-icon" src="${uri}" alt="${mapWeatherCode(wcode)}" />
                 <div class="weekly-day">${dateLabel}</div>
                 <div class="weekly-temps"><span class="min">${tMin}°</span> <span class="max">${tMax}°</span></div>
               </div>`;
     }).join('');
-    // append weekly list after hourly (or replace if hourly missing)
+
     const weeklyHtml = `<div class="weekly-list">${days}</div>`;
-    // if forecastEl already has hourly, append; otherwise set
     if (forecastEl.querySelector('.hourly-list')) {
       forecastEl.insertAdjacentHTML('beforeend', weeklyHtml);
     } else {
@@ -152,7 +199,6 @@ function renderResult(place, data){
 }
 
 function getWeatherSVG(code){
-  // simple inline SVGs as data URIs for common conditions
   const sun = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='12' fill='%23FFC107'/></svg>`;
   const cloud = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><path d='M20 40h28a10 10 0 0 0 0-20 14 14 0 0 0-27-2A8 8 0 0 0 12 34a6 6 0 0 0 8 6z' fill='%23ECEFF1'/></svg>`;
   const rain = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><path d='M20 30h28a10 10 0 0 0 0-20 14 14 0 0 0-27-2A8 8 0 0 0 12 24a6 6 0 0 0 8 6z' fill='%23CFD8DC'/><g fill='%23007AC1'><path d='M22 44c0 4-4 6-4 10 0 0 6-4 6-8s-2-2-2-2z'/><path d='M34 44c0 4-4 6-4 10 0 0 6-4 6-8s-2-2-2-2z'/><path d='M46 44c0 4-4 6-4 10 0 0 6-4 6-8s-2-2-2-2z'/></g></svg>`;

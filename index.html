@@ -1,47 +1,59 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <meta name="description" content="Clima‑Tempo — previsões rápidas para sua cidade usando Open‑Meteo." />
-    <title>Clima‑Tempo</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="web/css/style.css" />
-  </head>
-  <body>
-    <div class="app-container" role="application" aria-labelledby="app-title">
-      <header>
-        <h1 id="app-title">Clima‑Tempo</h1>
-        <p class="lead">Busque por uma cidade e veja a condição atual e as próximas horas — simples, rápido e bonito.</p>
-      </header>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Verifique a previsão do tempo para cidades usando APIs públicas (Open-Meteo).">
+  <meta name="theme-color" content="#0077b6">
+  <title>Clima Tempo</title>
+  <link rel="stylesheet" href="web/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Pular para o conteúdo</a>
 
-      <main>
-        <form id="searchForm" class="search-box" aria-label="Formulário de busca de cidade">
-          <input id="cityInput" name="city" type="search" placeholder="Ex.: São Paulo, Rio de Janeiro" aria-label="Cidade" required autocomplete="on" />
-          <button id="searchBtn" type="submit">Ver previsão</button>
-        </form>
+  <main id="main">
+    <div class="app-container">
+    <header>
+      <h1>☁️ Clima Tempo</h1>
+      <p>Verifique a previsão em qualquer lugar</p>
+    </header>
 
-        <div id="error" class="message-box hidden" role="status" aria-live="polite"></div>
+    <form id="searchForm" class="search-box">
+      <label for="cityInput" class="sr-only">Nome da cidade</label>
+      <input type="text" id="cityInput" placeholder="Digite o nome da cidade..." autocomplete="off" aria-label="Cidade">
+      <button type="submit" aria-label="Buscar cidade">Buscar</button>
+      <button type="button" id="btnLoc" class="btn-icon" aria-label="Usar minha localização" title="Usar minha localização"><i class="fas fa-location-crosshairs"></i></button>
+    </form>
 
-        <section id="result" class="result-box hidden" aria-live="polite">
-          <h2 id="location" class="location-heading"></h2>
-          <div class="weather-wrap">
-            <div id="current" class="weather-details" aria-label="Condição atual"></div>
-            <div id="forecast" class="weather-details" aria-label="Previsão horária"></div>
-          </div>
-          <div class="forecast-note">Dados fornecidos pela Open‑Meteo • Sem necessidade de chave</div>
-        </section>
-      </main>
+    <div id="error" class="message-box hidden" role="status" aria-live="polite" aria-atomic="true"></div>
 
-      <footer class="footer">
-        Dados: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open‑Meteo</a>
-        <span aria-hidden="true"> ☀️ </span>
-        Imagens: <a href="https://unsplash.com/" target="_blank" rel="noopener">Unsplash</a>
-        <span aria-hidden="true">•</span>
-        Demo educacional — sem garantia de precisão
-      </footer>
+    <section id="result" class="result-box hidden">
+      <h2 id="location"></h2>
+      <div id="current" class="weather-details"></div>
+      <div id="forecast"></div>
+    </section>
+
+    <footer class="app-footer">
+      <div class="social-links">
+        <a href="https://www.linkedin.com/in/elisangela-amaral/" target="_blank" rel="noopener noreferrer" title="LinkedIn">
+          <i class="fab fa-linkedin"></i>
+        </a>
+        <a href="https://github.com/elisangelaamaral9-hue" target="_blank" rel="noopener noreferrer" title="GitHub">
+          <i class="fab fa-github"></i>
+        </a>
+        <a href="https://www.instagram.com/elisangela.amaral24" target="_blank" rel="noopener noreferrer" title="Instagram">
+          <i class="fab fa-instagram"></i>
+        </a>
+      </div>
+      <p>Feito por Elisângela Amaral - 2025</p>
+    </footer>
     </div>
+  </main>
 
-    <script src="web/js/app.js" type="module" defer></script>
-  </body>
+  <script src="web/js/app.js" defer></script>
+</body>
 </html>
